@@ -60,22 +60,22 @@ endif ()
 
 set(SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
 
+add_executable(dots "${SOURCE_DIR}/dots.c")
+target_include_directories(dots PRIVATE "${SOURCE_DIR}")
+target_link_libraries(dots PRIVATE raylib)
+
 if(APPLE)
-  add_executable(dots MACOSX_BUNDLE "${SOURCE_DIR}/dots.c")
-  target_include_directories(dots PRIVATE "${SOURCE_DIR}")
-  target_link_libraries(dots PRIVATE raylib)
+  add_executable(dots_app MACOSX_BUNDLE "${SOURCE_DIR}/dots.c")
+  target_include_directories(dots_app PRIVATE "${SOURCE_DIR}")
+  target_link_libraries(dots_app PRIVATE raylib)
   # Bundling macOS application
-  set_target_properties(dots
+  set_target_properties(dots_app
     PROPERTIES
       BUNDLE True
-      MACOSX_BUNDLE_BUNDLE_NAME dots
+      MACOSX_BUNDLE_BUNDLE_NAME Dots
       MACOSX_BUNDLE_BUNDLE_VERSION "0.0.1"
       MACOSX_BUNDLE_GUI_IDENTIFIER org.nk2ge5k.imagine.dots
       MACOSX_BUNDLE_ICON_FILE AppIcon
       MACOSX_BUNDLE_SHORT_VERSION_STRING "0.0.1"
   )
-elseif(LINUX)
-  add_executable(dots "${SOURCE_DIR}/dots.c")
-  target_include_directories(dots PRIVATE "${SOURCE_DIR}")
-  target_link_libraries(dots PRIVATE raylib)
 endif()
