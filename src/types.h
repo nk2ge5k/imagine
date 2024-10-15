@@ -1,11 +1,9 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-#include <stdint.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <sys/types.h>
 
 // pi / 180
 #define M_PI_180 0.0174532925199432957692369076848861271111L
@@ -42,7 +40,6 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 
 typedef size_t usize;
-typedef ssize_t ssize;
 
 #define Fu32 "%" PRIu32 ""
 #define Fu64 "%" PRIu64 ""
@@ -59,55 +56,6 @@ typedef double f64;
 # define UNUSED(name) _unused_ ## name __attribute__((unused))
 #else
 # define UNUSED(name) _unused_ ## name
-#endif
-
-
-#ifdef PARANOIA
-
-void* _malloc(usize size, const char* filepath, i32 linenum);
-void* _calloc(usize nmemb, usize size, const char* filepath, i32 linenum);
-void* _realloc(void* ptr, usize size, const char* filepath, i32 linenum);
-void _free(void* ptr, const char* filepath, i32 linenum);
-
-#ifndef gmalloc
-# define gmalloc(size) _malloc(size, __FILE__, __LINE__)
-#endif
-
-#ifndef gcalloc
-# define gcalloc(nmemb, size) _calloc(nmemb, size, __FILE__, __LINE__)
-#endif
-
-#ifndef grealloc
-# define grealloc(ptr, size) _realloc(ptr, size, __FILE__, __LINE__)
-#endif
-
-#ifndef gfree
-# define gfree(ptr) _free(ptr, __FILE__, __LINE__)
-#endif
-
-#else
-
-void* _malloc(usize size);
-void* _calloc(usize nmemb, usize size);
-void* _realloc(void* ptr, usize size);
-void _free(void* ptr);
-
-#ifndef gmalloc
-# define gmalloc _malloc
-#endif
-
-#ifndef gcalloc
-# define gcalloc _calloc
-#endif
-
-#ifndef grealloc
-# define grealloc _realloc
-#endif
-
-#ifndef gfree
-# define gfree _free
-#endif
-
 #endif
 
 #ifdef __cplusplus
@@ -202,39 +150,5 @@ void _free(void* ptr);
     (da)->cap = 0;         \
   }                        \
 } while (0)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * This is just a random utils that i do not know where to put, so for now
- * they are just here
- */
-
-
-bool f64eq(f64 a, f64 b);
-
-#define DECL_SWAP_INT(T) \
-  inline void swap##T(T* a, T* b) { \
-     *a ^= *b; \
-     *b ^= *a; \
-     *a ^= *b; \
-  }
-
-DECL_SWAP_INT(i8)
-DECL_SWAP_INT(i16)
-DECL_SWAP_INT(i32)
-DECL_SWAP_INT(i64)
-DECL_SWAP_INT(u8)
-DECL_SWAP_INT(u16)
-DECL_SWAP_INT(u32)
-DECL_SWAP_INT(u64)
-
-#undef DECL_SWAP_INT
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

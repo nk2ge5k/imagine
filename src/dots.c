@@ -291,7 +291,6 @@ i32 main(void) {
 
   while (!WindowShouldClose()) {
     if (loadDroppedImage(&image)) {
-
       camera.zoom   = 1.0f;
       camera.target = (Vector2){
         .x = image.width / 2.0f,
