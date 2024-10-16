@@ -28,15 +28,32 @@ set(FETCHCONTENT_QUIET FALSE)
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
 
+add_definitions(
+  -DSUPPORT_FILEFORMAT_BMP=1
+  -DSUPPORT_FILEFORMAT_TGA=1
+  -DSUPPORT_FILEFORMAT_JPG=1
+  -DSUPPORT_FILEFORMAT_GIF=1
+  -DSUPPORT_FILEFORMAT_QOI=1
+  -DSUPPORT_FILEFORMAT_PSD=1
+  -DSUPPORT_FILEFORMAT_DDS=1
+  -DSUPPORT_FILEFORMAT_HDR=1
+  -DSUPPORT_FILEFORMAT_PIC=1
+  -DSUPPORT_FILEFORMAT_KTX=1
+  -DSUPPORT_FILEFORMAT_ASTC=1
+  -DSUPPORT_FILEFORMAT_PKM=1
+  -DSUPPORT_FILEFORMAT_PVR=1
+  -DSUPPORT_FILEFORMAT_SVG=1)
+
 FetchContent_Declare(
     raylib
-    GIT_REPOSITORY "https://github.com/raysan5/raylib.git"
+    GIT_REPOSITORY "git@github.com:raysan5/raylib.git"
     GIT_TAG "master"
     GIT_PROGRESS TRUE
     GIT_SHALLOW 1
 )
 
 FetchContent_MakeAvailable(raylib)
+
 
 if (APPLE)
   list(APPEND FRAMEWORKS "-framework CoreVideo")
@@ -68,6 +85,7 @@ if(APPLE)
   add_executable(dots_app MACOSX_BUNDLE "${SOURCE_DIR}/dots.c")
   target_include_directories(dots_app PRIVATE "${SOURCE_DIR}")
   target_link_libraries(dots_app PRIVATE raylib)
+
   # Bundling macOS application
   set_target_properties(dots_app
     PROPERTIES
