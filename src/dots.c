@@ -302,6 +302,7 @@ local void renderFigureButton(Renderer render, FigureButtonState* state) {
 
 typedef struct {
   bool highlighted;
+  bool changing;
 
   f32 x;
   f32 y;
@@ -349,11 +350,18 @@ local void updateStepRadius(StepRadiusState* state) {
   if (CheckCollisionPointRec(mouse, rect)) {
     state->highlighted = true;
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-      state->x = Remap(Clamp(mouse.x, xmin, xmax), xmin, xmax, 0.0f, 1.0f);
-      state->y = Remap(Clamp(mouse.y, ymin, ymax), ymin, ymax, 0.0f, 1.0f);
+      state->changing = true;
     }
-  } else {
+  } else if (!state->changing) {
     state->highlighted = false;
+  }
+  if (state->changing && IsMouseButtonUp(MOUSE_BUTTON_LEFT)) {
+    state->changing = false;
+  }
+
+  if (state->changing) {
+    state->x = Remap(Clamp(mouse.x, xmin, xmax), xmin, xmax, 0.0f, 1.0f);
+    state->y = Remap(Clamp(mouse.y, ymin, ymax), ymin, ymax, 0.0f, 1.0f);
   }
 
   state->step   = Clamp(max_step * state->y, 4, max_step);
@@ -483,13 +491,6 @@ local void renderLumButton(Button* state) {
 
   f32 size = ((rect.width < rect.height) ? rect.width : rect.height) - padding;
 
-  Rectangle icon = {
-    .x      = rect.x + (padding / 2.0f),
-    .y      = rect.y + (padding / 2.0f),
-    .width  = size,
-    .height = size,
-  };
-
   if (state->is_clicked) {
     Vector2 start = {
       .x = rect.x + padding * 0.5f,
@@ -534,7 +535,7 @@ local void updateShiftButton(Button* state) {
   updateButton(state, rect);
 }
 
-local void renderShiftButton(Button* state, Figure fugure) {
+local void renderShiftButton(Button* state) {
   local const f32 padding = 10.0f;
 
   Rectangle rect = rectShiftButton();
@@ -642,7 +643,7 @@ local void svgDrawTriangleStrip(const Vector2 *points, i32 pointCount, Color col
   }
 }
 
-local void svgEnd() {
+local void svgEnd(void) {
   fprintf(svg, "</svg>");
 }
 
@@ -769,7 +770,7 @@ local void renderImage(Renderer render, Image image,
 
 i32 main(void) {
   static const char text[] = "Drag and drop your image here";
-  static const char subtext[] = "supported file formats: .png, .jpg";
+  static const char subtext[] = "supported file formats: .png, .jpg, .gif";
 
   char filename[MAX_FILENAME_SIZE] = { 0 };
 
@@ -780,7 +781,7 @@ i32 main(void) {
   i32 subtext_width = MeasureText(subtext, 24);
 
   Image image                       = { 0 };
-  StepRadiusState step_radius_state = { false, 0.5, 0.5 };
+  StepRadiusState step_radius_state = { false, false, 0.5, 0.5, 0, 0 };
   FigureButtonState figure_state    = { 0 };
   Button bw_state                   = { 0 };
   Button lum_state                  = { 0 };
@@ -895,7 +896,7 @@ i32 main(void) {
     renderFigureButton(ray_renderer, &figure_state);
     renderBWButton(&bw_state);
     renderLumButton(&lum_state);
-    renderShiftButton(&shift_state, figure_state.figure);
+    renderShiftButton(&shift_state);
     renderSaveButton(&save_state);
 
     EndDrawing();

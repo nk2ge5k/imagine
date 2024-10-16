@@ -4,10 +4,6 @@ project(imagine
     LANGUAGES C
     DESCRIPTION "Collection of image processing algorithms")
 
-if(UNIX AND NOT APPLE)
-    set(LINUX TRUE)
-endif()
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_C_STANDARD 99)
@@ -18,31 +14,23 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-# set(BUILD_SHARED_LIBS OFF)
-# set(CMAKE_EXE_LINKER_FLAGS "-static")
+add_compile_definitions(SUPPORT_FILEFORMAT_BMP=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_TGA=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_JPG=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_GIF=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_QOI=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_PSD=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_DDS=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_HDR=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_PIC=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_KTX=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_ASTC=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_PKM=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_PVR=1)
+add_compile_definitions(SUPPORT_FILEFORMAT_SVG=1)
 
 # Adding Raylib
 include(FetchContent)
-set(FETCHCONTENT_QUIET FALSE)
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
-
-add_definitions(
-  -DSUPPORT_FILEFORMAT_BMP=1
-  -DSUPPORT_FILEFORMAT_TGA=1
-  -DSUPPORT_FILEFORMAT_JPG=1
-  -DSUPPORT_FILEFORMAT_GIF=1
-  -DSUPPORT_FILEFORMAT_QOI=1
-  -DSUPPORT_FILEFORMAT_PSD=1
-  -DSUPPORT_FILEFORMAT_DDS=1
-  -DSUPPORT_FILEFORMAT_HDR=1
-  -DSUPPORT_FILEFORMAT_PIC=1
-  -DSUPPORT_FILEFORMAT_KTX=1
-  -DSUPPORT_FILEFORMAT_ASTC=1
-  -DSUPPORT_FILEFORMAT_PKM=1
-  -DSUPPORT_FILEFORMAT_PVR=1
-  -DSUPPORT_FILEFORMAT_SVG=1)
 
 FetchContent_Declare(
     raylib
@@ -52,18 +40,15 @@ FetchContent_Declare(
     GIT_SHALLOW 1
 )
 
-FetchContent_MakeAvailable(raylib)
+FetchContent_GetProperties(raylib)
+if (NOT raylib_POPULATED) # Have we downloaded raylib yet?
+  set(FETCHCONTENT_QUIET NO)
+  FetchContent_MakeAvailable(raylib)
+  set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
+  set(BUILD_GAMES    OFF CACHE BOOL "" FORCE)
+endif()
 
-
-if (APPLE)
-  list(APPEND FRAMEWORKS "-framework CoreVideo")
-  list(APPEND FRAMEWORKS "-framework IOKit")
-  list(APPEND FRAMEWORKS "-framework Cocoa")
-  list(APPEND FRAMEWORKS "-framework GLUT")
-  list(APPEND FRAMEWORKS "-framework OpenGL")
-  list(JOIN FRAMEWORKS " " FRAMEWORKS)
-  set(CMAKE_C_FLAGS ${FRAMEWORKS})
-elseif (LINUX)
+if (UNIX)
   add_compile_options(
       -Wall
       -Wno-unknown-pragmas
@@ -77,17 +62,14 @@ endif ()
 
 set(SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
 
-add_executable(dots "${SOURCE_DIR}/dots.c")
-target_include_directories(dots PRIVATE "${SOURCE_DIR}")
-target_link_libraries(dots PRIVATE raylib)
+set(PROJECT_NAME "dots")
 
 if(APPLE)
-  add_executable(dots_app MACOSX_BUNDLE "${SOURCE_DIR}/dots.c")
-  target_include_directories(dots_app PRIVATE "${SOURCE_DIR}")
-  target_link_libraries(dots_app PRIVATE raylib)
-
-  # Bundling macOS application
-  set_target_properties(dots_app
+  add_executable(${PROJECT_NAME} MACOSX_BUNDLE "${SOURCE_DIR}/dots.c")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework IOKit")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Cocoa")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework OpenGL")
+  set_target_properties(${PROJECT_NAME}
     PROPERTIES
       BUNDLE True
       MACOSX_BUNDLE_BUNDLE_NAME Dots
@@ -97,3 +79,6 @@ if(APPLE)
       MACOSX_BUNDLE_SHORT_VERSION_STRING "0.0.1"
   )
 endif()
+
+target_include_directories(${PROJECT_NAME} PRIVATE "${SOURCE_DIR}")
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
