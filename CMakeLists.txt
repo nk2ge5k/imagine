@@ -61,11 +61,13 @@ if (UNIX)
 endif ()
 
 set(SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
+set(SUBMODULES "${CMAKE_CURRENT_LIST_DIR}/submodules")
+set(SOURCES "${SOURCE_DIR}/dots.c" "${SOURCE_DIR}/delaunay.c")
 
 set(PROJECT_NAME "dots")
 
 if(APPLE)
-  add_executable(${PROJECT_NAME} MACOSX_BUNDLE "${SOURCE_DIR}/dots.c")
+  add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES})
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework IOKit")
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Cocoa")
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework OpenGL")
@@ -78,7 +80,10 @@ if(APPLE)
       MACOSX_BUNDLE_ICON_FILE AppIcon
       MACOSX_BUNDLE_SHORT_VERSION_STRING "0.0.1"
   )
+else()
+  add_executable(${PROJECT_NAME} ${SOURCES})
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PRIVATE "${SUBMODULES}/stb")
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

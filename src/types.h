@@ -112,8 +112,8 @@ typedef double f64;
 #endif
 
 #define da_define(name, T) typedef struct { \
-  u32 len;                                  \
-  u32 cap;                                  \
+  i32 len;                                  \
+  i32 cap;                                  \
   T*  arr;                                  \
 } name
 
@@ -127,7 +127,7 @@ typedef double f64;
 #define da_resize(da, newlen) do {                                                      \
   if ((da)->cap < (newlen)) {                                                           \
     (da)->cap = (newlen);                                                               \
-    (da)->arr = cast_ptr((da)->arr)grealloc((da)->arr, (da)->cap * sizeof(*(da)->arr)); \
+    (da)->arr = cast_ptr((da)->arr)realloc((da)->arr, (da)->cap * sizeof(*(da)->arr));  \
   }                                                                                     \
   (da)->len = newlen;                                                                   \
 } while (0)
@@ -137,7 +137,7 @@ typedef double f64;
 #define da_reserve(da, newcap) do {                                                     \
   if ((da)->cap < (newcap)) {                                                           \
     (da)->cap = (newcap);                                                               \
-    (da)->arr = cast_ptr((da)->arr)grealloc((da)->arr, (da)->cap * sizeof(*(da)->arr)); \
+    (da)->arr = cast_ptr((da)->arr)realloc((da)->arr, (da)->cap * sizeof(*(da)->arr));  \
   }                                                                                     \
 } while (0)
 
@@ -145,7 +145,7 @@ typedef double f64;
 #define da_append(da, val) do {                                                         \
   if ((da)->len >= (da)->cap) {                                                         \
     (da)->cap = (da)->cap == 0 ? 256 : (da)->cap * 2;                                   \
-    (da)->arr = cast_ptr((da)->arr)grealloc((da)->arr, (da)->cap * sizeof(*(da)->arr)); \
+    (da)->arr = cast_ptr((da)->arr)realloc((da)->arr, (da)->cap * sizeof(*(da)->arr));  \
   }                                                                                     \
   (da)->arr[(da)->len++] = (val);                                                       \
 } while (0)
@@ -166,7 +166,7 @@ typedef double f64;
 // da_free frees memory allocated by the array
 #define da_free(da) do {   \
   if ((da)->arr != NULL) { \
-    gfree((da)->arr);      \
+    free((da)->arr);       \
     (da)->len = 0;         \
     (da)->cap = 0;         \
   }                        \

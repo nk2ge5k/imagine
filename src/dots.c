@@ -27,10 +27,20 @@
 #include <raylib.h>
 #include <raymath.h>
 
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
+#undef STB_DS_IMPLEMENTATION
+
 #include "types.h"
+#include "delaunay.h"
+#define ARENA_IMPLEMENTATION
+#include "arena.h"
+#undef ARENA_IMPLEMENTATION
 
 #define MAX_FILENAME_SIZE 1024
 #define RADS(degs) (degs * M_PI_180)
+
+da_define(Points, Vector2);
 
 ////////////////////////////////////////////////////////////////////////////////
 /// FIGURES
@@ -335,7 +345,7 @@ local Rectangle rectStepRadius(StepRadiusState* state) {
 }
 
 local void updateStepRadius(StepRadiusState* state) {
-  local const f32 max_step  = 50;
+  local const f32 max_step  = 100;
 
   Rectangle rect = rectStepRadius(state);
   Vector2 mouse  = GetMousePosition();
@@ -366,7 +376,7 @@ local void updateStepRadius(StepRadiusState* state) {
 
   state->step   = Clamp(max_step * state->y, 4, max_step);
   state->step   = state->step % 2 == 0 ? state->step + 1 : state->step;
-  state->radius = (state->step / 2.0f) * state->x;
+  state->radius = state->step * state->x;
 }
 
 local void renderStepRadiusControl(StepRadiusState* state) {
@@ -611,7 +621,7 @@ local void svgBegin(i32 width, i32 height, f32 radius) {
 
 local void svgDrawCircleV(Vector2 center, f32 radius, Color color) {
   fprintf(svg,
-    "<circle cx=\"%f\" cy=\"%f\" r=\"%f\" fill=\"%02x%02x%02x\"/>\n",
+    "<circle cx=\"%f\" cy=\"%f\" r=\"%f\" fill=\"#%02x%02x%02x\"/>\n",
     center.x, center.y, radius, color.r, color.g, color.b);
 }
 
@@ -662,7 +672,7 @@ local bool loadDroppedImage(Image* image, char* filename) {
   for (u32 i = 0; i < files.count; i++) {
     Image img = LoadImage(files.paths[i]);
 
-    if (IsImageReady(img)) {
+    if (IsImageValid(img)) {
       UnloadImage(*image);
       *image = img;
       loaded = true;
@@ -774,8 +784,11 @@ i32 main(void) {
 
   char filename[MAX_FILENAME_SIZE] = { 0 };
 
+  Points points = { 0 };
+
   InitWindow(1024, 768, "dots");
   SetTargetFPS(30);
+  SetWindowState(FLAG_WINDOW_RESIZABLE);
 
   i32 text_width = MeasureText(text, 30);
   i32 subtext_width = MeasureText(subtext, 24);
@@ -829,7 +842,7 @@ i32 main(void) {
     updateSaveButton(&save_state);
 
     if (save_state.is_clicked) {
-      if (IsImageReady(image)) {
+      if (IsImageValid(image)) {
         const char* filepath = TextFormat("%s/Desktop/%s.svg",
             getenv("HOME"), filename);
         if (FileExists(filepath)) {
@@ -875,7 +888,7 @@ i32 main(void) {
     BeginDrawing();
     ClearBackground(WHITE);
 
-    if (IsImageReady(image)) {
+    if (IsImageValid(image)) {
       BeginMode2D(camera);
       renderImage(ray_renderer, image,
           figure_state.figure,
@@ -890,6 +903,21 @@ i32 main(void) {
 
       DrawText(text, (width / 2) - (text_width / 2), y, 30, BLACK);
       DrawText(subtext, (width / 2) - (subtext_width / 2), y + 30, 24, GRAY);
+
+      // TEST
+      if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        Vector2 mouse = GetMousePosition();
+        da_append(&points, mouse);
+      }
+
+      for (i32 i = 0; i < points.len; i++) {
+        DrawCircleV(points.arr[i], 2, BLACK);
+      }
+
+      if (points.len >= 3) {
+        delaunay(points.arr, points.len);
+      }
+      // TEST
     }
 
     renderStepRadiusControl(&step_radius_state);
